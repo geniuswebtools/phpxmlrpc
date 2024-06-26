@@ -57,6 +57,7 @@ class Client
     const OPT_USE_CURL = 'use_curl';
     const OPT_VERIFY_HOST = 'verifyhost';
     const OPT_VERIFY_PEER = 'verifypeer';
+    const OPT_CUSTOM_HEADER = 'custom_header';
 
     /** @var string */
     protected static $requestClass = '\\PhpXmlRpc\\Request';
@@ -259,6 +260,13 @@ class Client
     protected $user_agent;
 
     /**
+     * @var array
+     * 
+     * Pass custom headers when using cURL
+     */
+    protected $custom_header = array();
+
+    /**
      * CURL handle: used for keep-alive
      * @internal
      */
@@ -299,6 +307,7 @@ class Client
         self::OPT_USERNAME,
         self::OPT_VERIFY_HOST,
         self::OPT_VERIFY_PEER,
+        self::OPT_CUSTOM_HEADER,
     );
 
     /**
@@ -434,6 +443,12 @@ class Client
             $this->setOption($name, $value);
         }
 
+        return $this;
+    }
+
+    
+    public function setCustomHeader($struct) {
+        $this->custom_header = $struct;
         return $this;
     }
 
@@ -1331,6 +1346,10 @@ class Client
         }
         // extra headers
         $headers = array('Content-Type: ' . $req->getContentType(), 'Accept-Charset: ' . implode(',', $opts['accepted_charset_encodings']));
+        // Add custom headers if provided
+        if(!empty($opts['custom_header'])) {
+            $headers = array_merge((array)$headers, (array)$opts['custom_header']);
+        }
         // if no keepalive is wanted, let the server know it in advance
         if (!$opts['keepalive']) {
             $headers[] = 'Connection: close';
@@ -1956,6 +1975,7 @@ class Client
             'use_curl' => $this->use_curl,
             'verifyhost' => $this->verifyhost,
             'verifypeer' => $this->verifypeer,
+            'custom_header' => $this->custom_header,
         ));
     }
 
